@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "AutoLeave.h"
 
-/* Plugin Settings Window code here
 std::string AutoLeave::GetPluginName() {
 	return "AutoLeave";
 }
@@ -10,72 +9,13 @@ void AutoLeave::SetImGuiContext(uintptr_t ctx) {
 	ImGui::SetCurrentContext(reinterpret_cast<ImGuiContext*>(ctx));
 }
 
-// Render the plugin settings here
-// This will show up in bakkesmod when the plugin is loaded at
-//  f2 -> plugins -> AutoLeave
 void AutoLeave::RenderSettings() {
-	ImGui::TextUnformatted("AutoLeave plugin settings");
-}
-*/
-
-/*
-// Do ImGui rendering here
-void AutoLeave::Render()
-{
-	if (!ImGui::Begin(menuTitle_.c_str(), &isWindowOpen_, ImGuiWindowFlags_None))
+	CVarWrapper enableCvar = cvarManager->getCvar("AutoLeaveEnabled");
+	if (!enableCvar) return;
+	bool enabled = enableCvar.getBoolValue();
+	if (ImGui::Checkbox("Enable plugin", &enabled))
 	{
-		// Early out if the window is collapsed, as an optimization.
-		ImGui::End();
-		return;
-	}
-
-	ImGui::End();
-
-	if (!isWindowOpen_)
-	{
-		cvarManager->executeCommand("togglemenu " + GetMenuName());
+		enableCvar.setValue(enabled);
 	}
 }
 
-// Name of the menu that is used to toggle the window.
-std::string AutoLeave::GetMenuName()
-{
-	return "autoleave";
-}
-
-// Title to give the menu
-std::string AutoLeave::GetMenuTitle()
-{
-	return menuTitle_;
-}
-
-// Don't call this yourself, BM will call this function with a pointer to the current ImGui context
-void AutoLeave::SetImGuiContext(uintptr_t ctx)
-{
-	ImGui::SetCurrentContext(reinterpret_cast<ImGuiContext*>(ctx));
-}
-
-// Should events such as mouse clicks/key inputs be blocked so they won't reach the game
-bool AutoLeave::ShouldBlockInput()
-{
-	return ImGui::GetIO().WantCaptureMouse || ImGui::GetIO().WantCaptureKeyboard;
-}
-
-// Return true if window should be interactive
-bool AutoLeave::IsActiveOverlay()
-{
-	return true;
-}
-
-// Called when window is opened
-void AutoLeave::OnOpen()
-{
-	isWindowOpen_ = true;
-}
-
-// Called when window is closed
-void AutoLeave::OnClose()
-{
-	isWindowOpen_ = false;
-}
-*/

@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "AutoLeave.h"
+#include <sstream>
 
 
 BAKKESMOD_PLUGIN(AutoLeave, "Automatically leave matches", plugin_version, PLUGINTYPE_FREEPLAY)
@@ -9,38 +10,100 @@ std::shared_ptr<CVarManagerWrapper> _globalCvarManager;
 void AutoLeave::onLoad()
 {
 	_globalCvarManager = cvarManager;
-	//cvarManager->log("Plugin loaded!");
 
-	//cvarManager->registerNotifier("my_aweseome_notifier", [&](std::vector<std::string> args) {
-	//	cvarManager->log("Hello notifier!");
-	//}, "", 0);
+	trainingMap = std::make_shared<std::string>("EuroStadium_Night_P");
 
-	//auto cvar = cvarManager->registerCvar("template_cvar", "hello-cvar", "just a example of a cvar");
-	//auto cvar2 = cvarManager->registerCvar("template_cvar2", "0", "just a example of a cvar with more settings", true, true, -10, true, 10 );
+	registerCvars();
+	hookAll();
+}
 
-	//cvar.addOnValueChanged([this](std::string cvarName, CVarWrapper newCvar) {
-	//	cvarManager->log("the cvar with name: " + cvarName + " changed");
-	//	cvarManager->log("the new value is:" + newCvar.getStringValue());
-	//});
+void AutoLeave::registerCvars()
+{
+	cvarManager->registerCvar("AutoLeaveEnabled", "1")
+		.addOnValueChanged([this](std::string oldValue, CVarWrapper cvar)
+	{
+		cVarEnabledChanged();
+	});
+	cvarManager->registerCvar("trainingMap", "EuroStadium_Night_P")
+		.bindTo(trainingMap);
+}
 
-	//cvar2.addOnValueChanged(std::bind(&AutoLeave::YourPluginMethod, this, _1, _2));
+void AutoLeave::cVarEnabledChanged()
+{
+	bool enabled = cvarManager->getCvar("AutoLeaveEnabled").getBoolValue();
+	if (enabled && !hooked)
+	{
+		hookAll();
+	}
+	else if (!enabled && hooked)
+	{
+		unhookAll();
+	}
+}
 
-	// enabled decleared in the header
-	//enabled = std::make_shared<bool>(false);
-	//cvarManager->registerCvar("TEMPLATE_Enabled", "0", "Enable the TEMPLATE plugin", true, true, 0, true, 1).bindTo(enabled);
+void AutoLeave::hookAll()
+{
+	gameWrapper->HookEvent("Function TAGame.GameEvent_TA.OnCanVoteForfeitChanged",
+		[this](std::string eventname)
+	{
+		onForfeitChanged();
+	});
+	gameWrapper->HookEvent("Function TAGame.Car_Freeplay_TA.HandleAllAssetsLoaded",
+		[this](std::string eventname)
+	{
+		onLoadedFreeplay();
+	});
+	hooked = true;
+}
 
-	//cvarManager->registerNotifier("NOTIFIER", [this](std::vector<std::string> params){FUNCTION();}, "DESCRIPTION", PERMISSION_ALL);
-	//cvarManager->registerCvar("CVAR", "DEFAULTVALUE", "DESCRIPTION", true, true, MINVAL, true, MAXVAL);//.bindTo(CVARVARIABLE);
-	//gameWrapper->HookEvent("FUNCTIONNAME", std::bind(&TEMPLATE::FUNCTION, this));
-	//gameWrapper->HookEventWithCallerPost<ActorWrapper>("FUNCTIONNAME", std::bind(&AutoLeave::FUNCTION, this, _1, _2, _3));
-	//gameWrapper->RegisterDrawable(bind(&TEMPLATE::Render, this, std::placeholders::_1));
+void AutoLeave::queue()
+{
+	cvarManager->executeCommand("queue");
+}
 
+void AutoLeave::launchTraining()
+{
+	std::stringstream launchTrainingCommandBuilder;
+	launchTrainingCommandBuilder << "start " << *trainingMap << "?Game=TAGame.GameInfo_Tutorial_TA?GameTags=Freeplay";
+	gameWrapper->ExecuteUnrealCommand(launchTrainingCommandBuilder.str());
+}
 
-	//gameWrapper->HookEvent("Function TAGame.Ball_TA.Explode", [this](std::string eventName) {
-	//	cvarManager->log("Your hook got called and the ball went POOF");
-	//});
-	// You could also use std::bind here
-	//gameWrapper->HookEvent("Function TAGame.Ball_TA.Explode", std::bind(&AutoLeave::YourPluginMethod, this);
+void AutoLeave::onForfeitChanged()
+{
+	ServerWrapper server = gameWrapper->GetCurrentGameState();
+	if (server.IsNull()) return;
+	if (server.GetbCanVoteToForfeit()) return;
+	int playlist = server.GetPlaylist().GetPlaylistId();
+	if (!(playlist == DUEL || playlist == DOUBLES || playlist == STANDARD || playlist == HOOPS || playlist == RUMBLE || playlist == DROPSHOT || playlist == SNOW_DAY)) return;
+	launchTraining();
+	gameWrapper->SetTimeout([&](GameWrapper* gw)
+		{
+			queue();
+		}, 0.1);
+}
+
+bool AutoLeave::isFreeplayMap(const std::string& map)
+{
+	if (map.length() < 2) return false;
+	return (map[map.length() - 2] == '_' && std::tolower(map[map.length() - 1]) == 'p');
+}
+
+void AutoLeave::onLoadedFreeplay()
+{
+	std::string map = gameWrapper->GetCurrentMap();
+	LOG(map);
+	if (isFreeplayMap(map))
+	{
+		LOG("changed");
+		*trainingMap = map;
+	}
+}
+
+void AutoLeave::unhookAll()
+{
+	gameWrapper->UnhookEvent("Function TAGame.GameEvent_TA.OnCanVoteForfeitChanged");
+	gameWrapper->UnhookEvent("Function TAGame.Car_Freeplay_TA.HandleAllAssetsLoaded");
+	hooked = false;
 }
 
 void AutoLeave::onUnload()

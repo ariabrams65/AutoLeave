@@ -7,39 +7,37 @@
 #include "version.h"
 constexpr auto plugin_version = stringify(VERSION_MAJOR) "." stringify(VERSION_MINOR) "." stringify(VERSION_PATCH) "." stringify(VERSION_BUILD);
 
+constexpr int DUEL = 10;
+constexpr int DOUBLES = 11;
+constexpr int STANDARD = 13;
+constexpr int HOOPS = 27;
+constexpr int RUMBLE = 28;
+constexpr int DROPSHOT = 29;
+constexpr int SNOW_DAY = 30;
 
-class AutoLeave: public BakkesMod::Plugin::BakkesModPlugin/*, public BakkesMod::Plugin::PluginSettingsWindow*//*, public BakkesMod::Plugin::PluginWindow*/
+class AutoLeave: public BakkesMod::Plugin::BakkesModPlugin, public BakkesMod::Plugin::PluginSettingsWindow
 {
-
-	//std::shared_ptr<bool> enabled;
-
-	//Boilerplate
+public:
 	virtual void onLoad();
 	virtual void onUnload();
-
-	// Inherited via PluginSettingsWindow
-	/*
 	void RenderSettings() override;
 	std::string GetPluginName() override;
 	void SetImGuiContext(uintptr_t ctx) override;
-	*/
 
-	// Inherited via PluginWindow
-	/*
+private:
+	void registerCvars();
+	void cVarEnabledChanged();
+	void onForfeitChanged();
+	void onLoadedFreeplay();
+	void queue();
+	void launchTraining();
+	bool isFreeplayMap(const std::string&);
+	void hookAll();
+	void unhookAll();
 
-	bool isWindowOpen_ = false;
-	bool isMinimized_ = false;
-	std::string menuTitle_ = "AutoLeave";
+private:
+	bool hooked;
 
-	virtual void Render() override;
-	virtual std::string GetMenuName() override;
-	virtual std::string GetMenuTitle() override;
-	virtual void SetImGuiContext(uintptr_t ctx) override;
-	virtual bool ShouldBlockInput() override;
-	virtual bool IsActiveOverlay() override;
-	virtual void OnOpen() override;
-	virtual void OnClose() override;
-	
-	*/
+	std::shared_ptr<std::string> trainingMap;
 };
 
