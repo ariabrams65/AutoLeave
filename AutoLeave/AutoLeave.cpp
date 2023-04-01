@@ -5,13 +5,13 @@
 
 BAKKESMOD_PLUGIN(AutoLeave, "Automatically leave matches", plugin_version, PLUGINTYPE_FREEPLAY)
 
-std::shared_ptr<CVarManagerWrapper> _globalCvarManager;
+std::shared_ptr<CVarManagerWrapper> _globalCvarManager; 
 
-void AutoLeave::onLoad()
-{
-	_globalCvarManager = cvarManager;
-
+void AutoLeave::onLoad() 
+{ 
+	_globalCvarManager = cvarManager; 
 	trainingMap = std::make_shared<std::string>("EuroStadium_Night_P");
+	leaveDelay = std::make_shared<float>(0);
 
 	registerCvars();
 	hookAll();
@@ -21,11 +21,13 @@ void AutoLeave::registerCvars()
 {
 	cvarManager->registerCvar("AutoLeaveEnabled", "1")
 		.addOnValueChanged([this](std::string oldValue, CVarWrapper cvar)
-	{
-		cVarEnabledChanged();
+			{
+				cVarEnabledChanged();
 	});
 	cvarManager->registerCvar("trainingMap", "EuroStadium_Night_P")
 		.bindTo(trainingMap);
+	cvarManager->registerCvar("leaveDelay", "0")
+		.bindTo(leaveDelay);
 }
 
 void AutoLeave::cVarEnabledChanged()
@@ -75,11 +77,14 @@ void AutoLeave::onForfeitChanged()
 	if (server.GetbCanVoteToForfeit()) return;
 	int playlist = server.GetPlaylist().GetPlaylistId();
 	if (!(playlist == DUEL || playlist == DOUBLES || playlist == STANDARD || playlist == HOOPS || playlist == RUMBLE || playlist == DROPSHOT || playlist == SNOW_DAY)) return;
-	launchTraining();
 	gameWrapper->SetTimeout([&](GameWrapper* gw)
 		{
-			queue();
-		}, 0.1);
+			launchTraining();
+			gameWrapper->SetTimeout([&](GameWrapper* gw)
+				{
+					queue();
+				}, 0.1);
+		}, *leaveDelay);
 }
 
 bool AutoLeave::isFreeplayMap(const std::string& map)
@@ -94,7 +99,6 @@ void AutoLeave::onLoadedFreeplay()
 	LOG(map);
 	if (isFreeplayMap(map))
 	{
-		LOG("changed");
 		*trainingMap = map;
 	}
 }

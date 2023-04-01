@@ -39,5 +39,6 @@ private:
 	bool hooked;
 
 	std::shared_ptr<std::string> trainingMap;
+	std::shared_ptr<float> leaveDelay;
 };
 

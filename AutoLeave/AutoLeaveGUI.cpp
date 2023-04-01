@@ -17,5 +17,13 @@ void AutoLeave::RenderSettings() {
 	{
 		enableCvar.setValue(enabled);
 	}
+
+	CVarWrapper delayCvar = cvarManager->getCvar("leaveDelay");
+	if (!delayCvar) return;
+	float delay = delayCvar.getFloatValue();
+	if (ImGui::SliderFloat("Delay", &delay, 0, 10))
+	{
+		delayCvar.setValue(delay);
+	}
 }
 
