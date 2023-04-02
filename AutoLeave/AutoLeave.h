@@ -29,6 +29,7 @@ public:
 private:
 	void registerCvars();
 	void cVarEnabledChanged();
+	void toggleCvar(const std::string&);
 	void onForfeitChanged();
 	void onLoadedFreeplay();
 	void queue();

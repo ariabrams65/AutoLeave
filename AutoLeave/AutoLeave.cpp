@@ -13,9 +13,20 @@ void AutoLeave::onLoad()
 	trainingMap = std::make_shared<std::string>("EuroStadium_Night_P");
 	delayLeaveEnabled = std::make_shared<bool>(false);
 
+	cvarManager->registerNotifier("toggleAutoLeave", [this](std::vector<std::string> args)
+		{
+			toggleCvar("AutoLeaveEnabled");
+		}, "", PERMISSION_ALL);
+
 	registerCvars();
 	hookAll();
 	replayActive = false;
+}
+
+void AutoLeave::toggleCvar(const std::string& cvar)
+{
+	bool value = cvarManager->getCvar(cvar).getBoolValue();
+	cvarManager->executeCommand(cvar + " " + std::to_string(!value));
 }
 
 void AutoLeave::registerCvars()
