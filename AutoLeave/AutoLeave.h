@@ -15,6 +15,8 @@ constexpr int RUMBLE = 28;
 constexpr int DROPSHOT = 29;
 constexpr int SNOW_DAY = 30;
 
+constexpr float LEAVE_MMR_DELAY = 0.254;
+
 class AutoLeave: public BakkesMod::Plugin::BakkesModPlugin, public BakkesMod::Plugin::PluginSettingsWindow
 {
 public:
@@ -30,15 +32,20 @@ private:
 	void onForfeitChanged();
 	void onLoadedFreeplay();
 	void queue();
+	void onStatEvent(void*);
+	void leaveMatch();
 	void launchTraining();
 	bool isFreeplayMap(const std::string&);
 	void hookAll();
 	void unhookAll();
 
+	void renderCheckbox(const std::string&, const char*);
+
 private:
 	bool hooked;
+	bool replayActive;
 
 	std::shared_ptr<std::string> trainingMap;
-	std::shared_ptr<float> leaveDelay;
+	std::shared_ptr<bool> delayLeaveEnabled;
 };
 

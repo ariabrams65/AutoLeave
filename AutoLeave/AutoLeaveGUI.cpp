@@ -9,21 +9,19 @@ void AutoLeave::SetImGuiContext(uintptr_t ctx) {
 	ImGui::SetCurrentContext(reinterpret_cast<ImGuiContext*>(ctx));
 }
 
-void AutoLeave::RenderSettings() {
-	CVarWrapper enableCvar = cvarManager->getCvar("AutoLeaveEnabled");
+void AutoLeave::renderCheckbox(const std::string& cvar, const char* desc)
+{
+	CVarWrapper enableCvar = cvarManager->getCvar(cvar);
 	if (!enableCvar) return;
 	bool enabled = enableCvar.getBoolValue();
-	if (ImGui::Checkbox("Enable plugin", &enabled))
+	if (ImGui::Checkbox(desc, &enabled))
 	{
 		enableCvar.setValue(enabled);
 	}
+}
 
-	CVarWrapper delayCvar = cvarManager->getCvar("leaveDelay");
-	if (!delayCvar) return;
-	float delay = delayCvar.getFloatValue();
-	if (ImGui::SliderFloat("Delay", &delay, 0, 10))
-	{
-		delayCvar.setValue(delay);
-	}
+void AutoLeave::RenderSettings() {
+	renderCheckbox("AutoLeaveEnabled", "Enable plugin");
+	renderCheckbox("delayLeaveEnabled", "Delay leave in order for MMR to update");
 }
 

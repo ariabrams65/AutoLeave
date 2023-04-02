@@ -11,10 +11,11 @@ void AutoLeave::onLoad()
 { 
 	_globalCvarManager = cvarManager; 
 	trainingMap = std::make_shared<std::string>("EuroStadium_Night_P");
-	leaveDelay = std::make_shared<float>(0);
+	delayLeaveEnabled = std::make_shared<bool>(false);
 
 	registerCvars();
 	hookAll();
+	replayActive = false;
 }
 
 void AutoLeave::registerCvars()
@@ -26,8 +27,8 @@ void AutoLeave::registerCvars()
 	});
 	cvarManager->registerCvar("trainingMap", "EuroStadium_Night_P")
 		.bindTo(trainingMap);
-	cvarManager->registerCvar("leaveDelay", "0")
-		.bindTo(leaveDelay);
+	cvarManager->registerCvar("delayLeaveEnabled", "0")
+		.bindTo(delayLeaveEnabled);
 }
 
 void AutoLeave::cVarEnabledChanged()
@@ -55,7 +56,33 @@ void AutoLeave::hookAll()
 	{
 		onLoadedFreeplay();
 	});
+	gameWrapper->HookEventWithCaller<ServerWrapper>("Function TAGame.GFxHUD_TA.HandleStatTickerMessage",
+		[this](ServerWrapper caller, void* params, std::string eventname)
+		{
+			onStatEvent(params);
+		});
+	gameWrapper->HookEvent("Function GameEvent_Soccar_TA.ReplayPlayback.EndState",
+		[this](std::string eventname)
+		{
+			replayActive = false;
+		});
 	hooked = true;
+}
+
+void AutoLeave::onStatEvent(void* params)
+{
+	struct StatTickerParams
+	{
+		uintptr_t Receiver;
+		uintptr_t Victim;
+		uintptr_t StatEvent;
+	};
+	StatTickerParams* pStruct = (StatTickerParams*)params;
+	StatEventWrapper statEvent = StatEventWrapper(pStruct->StatEvent);
+	if (statEvent.GetEventName() == "Goal")
+	{
+		replayActive = true;
+	}
 }
 
 void AutoLeave::queue()
@@ -70,6 +97,16 @@ void AutoLeave::launchTraining()
 	gameWrapper->ExecuteUnrealCommand(launchTrainingCommandBuilder.str());
 }
 
+void AutoLeave::leaveMatch()
+{
+	launchTraining();
+	gameWrapper->SetTimeout([this](GameWrapper* gw)
+		{
+			queue();
+		}, 0.1);
+	replayActive = false;
+}
+
 void AutoLeave::onForfeitChanged()
 {
 	ServerWrapper server = gameWrapper->GetCurrentGameState();
@@ -77,14 +114,18 @@ void AutoLeave::onForfeitChanged()
 	if (server.GetbCanVoteToForfeit()) return;
 	int playlist = server.GetPlaylist().GetPlaylistId();
 	if (!(playlist == DUEL || playlist == DOUBLES || playlist == STANDARD || playlist == HOOPS || playlist == RUMBLE || playlist == DROPSHOT || playlist == SNOW_DAY)) return;
-	gameWrapper->SetTimeout([&](GameWrapper* gw)
-		{
-			launchTraining();
-			gameWrapper->SetTimeout([&](GameWrapper* gw)
-				{
-					queue();
-				}, 0.1);
-		}, *leaveDelay);
+	
+	LOG(std::to_string(replayActive));
+	if (*delayLeaveEnabled && !replayActive)
+	{
+		gameWrapper->SetTimeout([this](GameWrapper* gw)
+			{
+				leaveMatch();
+			}, LEAVE_MMR_DELAY);
+	} else
+	{
+		leaveMatch();
+	}
 }
 
 bool AutoLeave::isFreeplayMap(const std::string& map)
