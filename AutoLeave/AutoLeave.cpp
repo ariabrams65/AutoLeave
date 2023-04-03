@@ -96,10 +96,9 @@ void AutoLeave::onMatchEnded()
 	int playlist = server.GetPlaylist().GetPlaylistId();
 	if (playlist == PRIVATE || playlist == TOURNAMENT) return;
 	if (!gameWrapper->GetMMRWrapper().IsRanked(playlist) && !*casualEnabled) return;
-	if (gameWrapper->GetMMRWrapper().IsRanked(playlist) && !*delayLeaveEnabled) return;
 
 	queue();
-	if (*delayLeaveEnabled)
+	if (*delayLeaveEnabled && gameWrapper->GetMMRWrapper().IsRanked(playlist))
 	{
 		gameWrapper->SetTimeout([this](GameWrapper* gw)
 			{
@@ -119,7 +118,7 @@ void AutoLeave::onForfeitChanged()
 	if (server.GetbCanVoteToForfeit()) return;
 	int playlist = server.GetPlaylist().GetPlaylistId();
 	if (playlist == PRIVATE || playlist == TOURNAMENT) return;
-	if (!gameWrapper->GetMMRWrapper().IsRanked(playlist)) return;
+	if (!gameWrapper->GetMMRWrapper().IsRanked(playlist) && !*casualEnabled) return;
 
 	launchTraining();
 	gameWrapper->SetTimeout([this](GameWrapper* gw)
