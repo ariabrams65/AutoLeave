@@ -31,10 +31,9 @@ private:
 	void cVarEnabledChanged();
 	void toggleCvar(const std::string&);
 	void onForfeitChanged();
+	void onMatchEnded();
 	void onLoadedFreeplay();
 	void queue();
-	void onStatEvent(void*);
-	void leaveMatch();
 	void launchTraining();
 	bool isFreeplayMap(const std::string&);
 	void hookAll();
@@ -44,9 +43,9 @@ private:
 
 private:
 	bool hooked;
-	bool replayActive;
 
 	std::shared_ptr<std::string> trainingMap;
 	std::shared_ptr<bool> delayLeaveEnabled;
+	std::shared_ptr<bool> casualEnabled;
 };
 
