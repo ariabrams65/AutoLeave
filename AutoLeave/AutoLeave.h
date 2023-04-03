@@ -7,13 +7,8 @@
 #include "version.h"
 constexpr auto plugin_version = stringify(VERSION_MAJOR) "." stringify(VERSION_MINOR) "." stringify(VERSION_PATCH) "." stringify(VERSION_BUILD);
 
-constexpr int DUEL = 10;
-constexpr int DOUBLES = 11;
-constexpr int STANDARD = 13;
-constexpr int HOOPS = 27;
-constexpr int RUMBLE = 28;
-constexpr int DROPSHOT = 29;
-constexpr int SNOW_DAY = 30;
+constexpr int PRIVATE = 6;
+constexpr int TOURNAMENT = 22;
 
 constexpr float LEAVE_MMR_DELAY = 0.254;
 

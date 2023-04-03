@@ -91,17 +91,24 @@ void AutoLeave::launchTraining()
 
 void AutoLeave::onMatchEnded()
 {
-	LOG("match ended *******");
-	if (!*delayLeaveEnabled) return;
 	ServerWrapper server = gameWrapper->GetCurrentGameState();
 	if (server.IsNull()) return;
 	int playlist = server.GetPlaylist().GetPlaylistId();
-	if (!gameWrapper->GetMMRWrapper().IsRanked(playlist)) return;
-	gameWrapper->SetTimeout([this](GameWrapper* gw)
-		{
-			launchTraining();
-			queue();
-		}, LEAVE_MMR_DELAY);
+	if (playlist == PRIVATE || playlist == TOURNAMENT) return;
+	if (!gameWrapper->GetMMRWrapper().IsRanked(playlist) && !*casualEnabled) return;
+	if (gameWrapper->GetMMRWrapper().IsRanked(playlist) && !*delayLeaveEnabled) return;
+
+	queue();
+	if (*delayLeaveEnabled)
+	{
+		gameWrapper->SetTimeout([this](GameWrapper* gw)
+			{
+				launchTraining();
+			}, LEAVE_MMR_DELAY);
+	} else 
+	{
+		launchTraining();
+	}
 }
 
 void AutoLeave::onForfeitChanged()
@@ -111,8 +118,8 @@ void AutoLeave::onForfeitChanged()
 	if (server.IsNull()) return;
 	if (server.GetbCanVoteToForfeit()) return;
 	int playlist = server.GetPlaylist().GetPlaylistId();
+	if (playlist == PRIVATE || playlist == TOURNAMENT) return;
 	if (!gameWrapper->GetMMRWrapper().IsRanked(playlist)) return;
-	//if (!(playlist == DUEL || playlist == DOUBLES || playlist == STANDARD || playlist == HOOPS || playlist == RUMBLE || playlist == DROPSHOT || playlist == SNOW_DAY)) return;
 
 	launchTraining();
 	gameWrapper->SetTimeout([this](GameWrapper* gw)
