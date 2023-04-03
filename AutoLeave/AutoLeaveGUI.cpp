@@ -24,5 +24,6 @@ void AutoLeave::RenderSettings() {
 	renderCheckbox("AutoLeaveEnabled", "Enable plugin");
 	renderCheckbox("delayLeaveEnabled", "Delay leave in order for MMR to update");
 	renderCheckbox("casualEnabled", "Enable for casual");
+	renderCheckbox("queueEnabled", "Enable auto queue");
 }
 

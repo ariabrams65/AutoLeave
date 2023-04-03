@@ -13,6 +13,7 @@ void AutoLeave::onLoad()
 	trainingMap = std::make_shared<std::string>("EuroStadium_Night_P");
 	delayLeaveEnabled = std::make_shared<bool>(false);
 	casualEnabled = std::make_shared<bool>(true);
+	queueEnabled = std::make_shared<bool>(true);
 
 	cvarManager->registerNotifier("toggleAutoLeave", [this](std::vector<std::string> args)
 		{
@@ -42,6 +43,8 @@ void AutoLeave::registerCvars()
 		.bindTo(delayLeaveEnabled);
 	cvarManager->registerCvar("casualEnabled", "1")
 		.bindTo(casualEnabled);
+	cvarManager->registerCvar("queueEnabled", "1")
+		.bindTo(queueEnabled);
 }
 
 void AutoLeave::cVarEnabledChanged()
@@ -97,7 +100,10 @@ void AutoLeave::onMatchEnded()
 	if (playlist == PRIVATE || playlist == TOURNAMENT) return;
 	if (!gameWrapper->GetMMRWrapper().IsRanked(playlist) && !*casualEnabled) return;
 
-	queue();
+	if (*queueEnabled)
+	{
+		queue();
+	}
 	if (*delayLeaveEnabled && gameWrapper->GetMMRWrapper().IsRanked(playlist))
 	{
 		gameWrapper->SetTimeout([this](GameWrapper* gw)
@@ -121,10 +127,13 @@ void AutoLeave::onForfeitChanged()
 	if (!gameWrapper->GetMMRWrapper().IsRanked(playlist) && !*casualEnabled) return;
 
 	launchTraining();
-	gameWrapper->SetTimeout([this](GameWrapper* gw)
-		{
-			queue();
-		}, 0.1);
+	if (*queueEnabled)
+	{
+		gameWrapper->SetTimeout([this](GameWrapper* gw)
+			{
+				queue();
+			}, 0.1);
+	}
 }
 
 bool AutoLeave::isFreeplayMap(const std::string& map)

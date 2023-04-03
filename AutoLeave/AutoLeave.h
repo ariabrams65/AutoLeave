@@ -42,5 +42,6 @@ private:
 	std::shared_ptr<std::string> trainingMap;
 	std::shared_ptr<bool> delayLeaveEnabled;
 	std::shared_ptr<bool> casualEnabled;
+	std::shared_ptr<bool> queueEnabled;
 };
 
