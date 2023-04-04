@@ -10,7 +10,7 @@ constexpr auto plugin_version = stringify(VERSION_MAJOR) "." stringify(VERSION_M
 constexpr int PRIVATE = 6;
 constexpr int TOURNAMENT = 22;
 
-constexpr float LEAVE_MMR_DELAY = 0.254;
+constexpr float LEAVE_MMR_DELAY = 0.250;
 
 class AutoLeave: public BakkesMod::Plugin::BakkesModPlugin, public BakkesMod::Plugin::PluginSettingsWindow
 {

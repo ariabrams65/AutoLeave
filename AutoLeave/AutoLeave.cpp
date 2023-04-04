@@ -118,12 +118,12 @@ void AutoLeave::onMatchEnded()
 
 void AutoLeave::onForfeitChanged()
 {
-	if (*delayLeaveEnabled) return;
 	ServerWrapper server = gameWrapper->GetCurrentGameState();
 	if (server.IsNull()) return;
 	if (server.GetbCanVoteToForfeit()) return;
 	int playlist = server.GetPlaylist().GetPlaylistId();
 	if (playlist == PRIVATE || playlist == TOURNAMENT) return;
+	if (gameWrapper->GetMMRWrapper().IsRanked(playlist) && *delayLeaveEnabled) return;
 	if (!gameWrapper->GetMMRWrapper().IsRanked(playlist) && !*casualEnabled) return;
 
 	launchTraining();
