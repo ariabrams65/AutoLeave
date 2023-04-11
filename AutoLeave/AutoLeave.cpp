@@ -2,7 +2,6 @@
 #include "AutoLeave.h"
 #include <sstream>
 
-
 BAKKESMOD_PLUGIN(AutoLeave, "Automatically leave matches", plugin_version, PLUGINTYPE_FREEPLAY)
 
 std::shared_ptr<CVarManagerWrapper> _globalCvarManager; 
@@ -47,7 +46,7 @@ void AutoLeave::registerCvars()
 	cvarManager->registerCvar("queueEnabled", "1")
 		.bindTo(queueEnabled);
 	cvarManager->registerCvar("launchFreeplayEnabled", "1")
-		.bindTo(queueEnabled);
+		.bindTo(launchFreeplayEnabled);
 }
 
 void AutoLeave::cVarEnabledChanged()
@@ -137,8 +136,6 @@ void AutoLeave::onForfeitChanged()
 	if (server.GetbCanVoteToForfeit()) return;
 	int playlist = server.GetPlaylist().GetPlaylistId();
 	if (playlist == PRIVATE || playlist == TOURNAMENT) return;
-	LOG(std::to_string(playlist));
-	LOG(std::to_string(gameWrapper->GetMMRWrapper().IsRanked(playlist)));
 	if (gameWrapper->GetMMRWrapper().IsRanked(playlist) && *delayLeaveEnabled) return;
 	if (!gameWrapper->GetMMRWrapper().IsRanked(playlist) && !*casualEnabled) return;
 
