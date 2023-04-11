@@ -25,5 +25,6 @@ void AutoLeave::RenderSettings() {
 	renderCheckbox("delayLeaveEnabled", "Delay leave in order for MMR to update");
 	renderCheckbox("casualEnabled", "Enable for casual");
 	renderCheckbox("queueEnabled", "Enable auto queue");
+	renderCheckbox("launchFreeplayEnabled", "Launch freeplay on game end");
 }
 

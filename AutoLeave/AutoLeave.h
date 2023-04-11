@@ -10,7 +10,7 @@ constexpr auto plugin_version = stringify(VERSION_MAJOR) "." stringify(VERSION_M
 constexpr int PRIVATE = 6;
 constexpr int TOURNAMENT = 22;
 
-constexpr float LEAVE_MMR_DELAY = 0.250;
+constexpr float LEAVE_MMR_DELAY = 0.26F;
 
 class AutoLeave: public BakkesMod::Plugin::BakkesModPlugin, public BakkesMod::Plugin::PluginSettingsWindow
 {
@@ -29,6 +29,7 @@ private:
 	void onMatchEnded();
 	void onLoadedFreeplay();
 	void queue();
+	void exitGame();
 	void launchTraining();
 	bool isFreeplayMap(const std::string&);
 	void hookAll();
@@ -43,5 +44,6 @@ private:
 	std::shared_ptr<bool> delayLeaveEnabled;
 	std::shared_ptr<bool> casualEnabled;
 	std::shared_ptr<bool> queueEnabled;
+	std::shared_ptr<bool> launchFreeplayEnabled;
 };
 

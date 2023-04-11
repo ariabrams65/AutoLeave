@@ -14,6 +14,7 @@ void AutoLeave::onLoad()
 	delayLeaveEnabled = std::make_shared<bool>(false);
 	casualEnabled = std::make_shared<bool>(true);
 	queueEnabled = std::make_shared<bool>(true);
+	launchFreeplayEnabled = std::make_shared<bool>(true);
 
 	cvarManager->registerNotifier("toggleAutoLeave", [this](std::vector<std::string> args)
 		{
@@ -44,6 +45,8 @@ void AutoLeave::registerCvars()
 	cvarManager->registerCvar("casualEnabled", "1")
 		.bindTo(casualEnabled);
 	cvarManager->registerCvar("queueEnabled", "1")
+		.bindTo(queueEnabled);
+	cvarManager->registerCvar("launchFreeplayEnabled", "1")
 		.bindTo(queueEnabled);
 }
 
@@ -85,6 +88,17 @@ void AutoLeave::queue()
 	cvarManager->executeCommand("queue");
 }
 
+void AutoLeave::exitGame()
+{
+	if (*launchFreeplayEnabled)
+	{
+		launchTraining();
+	} else
+	{
+		cvarManager->executeCommand("unreal_command disconnect");
+	}
+}
+
 void AutoLeave::launchTraining()
 {
 	std::stringstream launchTrainingCommandBuilder;
@@ -108,11 +122,11 @@ void AutoLeave::onMatchEnded()
 	{
 		gameWrapper->SetTimeout([this](GameWrapper* gw)
 			{
-				launchTraining();
+				exitGame();
 			}, LEAVE_MMR_DELAY);
 	} else 
 	{
-		launchTraining();
+		exitGame();
 	}
 }
 
@@ -123,16 +137,18 @@ void AutoLeave::onForfeitChanged()
 	if (server.GetbCanVoteToForfeit()) return;
 	int playlist = server.GetPlaylist().GetPlaylistId();
 	if (playlist == PRIVATE || playlist == TOURNAMENT) return;
+	LOG(std::to_string(playlist));
+	LOG(std::to_string(gameWrapper->GetMMRWrapper().IsRanked(playlist)));
 	if (gameWrapper->GetMMRWrapper().IsRanked(playlist) && *delayLeaveEnabled) return;
 	if (!gameWrapper->GetMMRWrapper().IsRanked(playlist) && !*casualEnabled) return;
 
-	launchTraining();
+	exitGame();
 	if (*queueEnabled)
 	{
 		gameWrapper->SetTimeout([this](GameWrapper* gw)
 			{
 				queue();
-			}, 0.1);
+			}, 0.1F);
 	}
 }
 
@@ -145,7 +161,6 @@ bool AutoLeave::isFreeplayMap(const std::string& map)
 void AutoLeave::onLoadedFreeplay()
 {
 	std::string map = gameWrapper->GetCurrentMap();
-	LOG(map);
 	if (isFreeplayMap(map))
 	{
 		*trainingMap = map;
