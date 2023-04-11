@@ -138,7 +138,7 @@ void AutoLeave::onForfeitChanged()
 	if (playlist == PRIVATE || playlist == TOURNAMENT) return;
 	if (gameWrapper->GetMMRWrapper().IsRanked(playlist) && *delayLeaveEnabled) return;
 	if (!gameWrapper->GetMMRWrapper().IsRanked(playlist) && !*casualEnabled) return;
-
+	
 	exitGame();
 	if (*queueEnabled)
 	{

@@ -17,6 +17,7 @@ class AutoLeave: public BakkesMod::Plugin::BakkesModPlugin, public BakkesMod::Pl
 public:
 	virtual void onLoad();
 	virtual void onUnload();
+
 	void RenderSettings() override;
 	std::string GetPluginName() override;
 	void SetImGuiContext(uintptr_t ctx) override;

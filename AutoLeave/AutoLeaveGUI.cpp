@@ -22,7 +22,7 @@ void AutoLeave::renderCheckbox(const std::string& cvar, const char* desc)
 
 void AutoLeave::RenderSettings() {
 	renderCheckbox("AutoLeaveEnabled", "Enable plugin");
-	renderCheckbox("delayLeaveEnabled", "Delay leave in order for MMR to update");
+	renderCheckbox("delayLeaveEnabled", "Delay leave in order for MMR to update(goal replays will play at the end of matches)");
 	renderCheckbox("casualEnabled", "Enable for casual");
 	renderCheckbox("queueEnabled", "Enable auto queue");
 	renderCheckbox("launchFreeplayEnabled", "Launch freeplay on game end");
