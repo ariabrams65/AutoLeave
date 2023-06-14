@@ -17,13 +17,21 @@ void AutoLeave::onLoad()
 	
 	cvarManager->registerNotifier("logPlaylist", [this](std::vector<std::string> args)
 		{
-
+		
 			LOG(std::to_string(gameWrapper->GetCurrentGameState().GetPlaylist().GetPlaylistId()));
 		}, "", PERMISSION_ALL);
 
 	cvarManager->registerNotifier("toggleAutoLeave", [this](std::vector<std::string> args)
 		{
 			toggleCvar("AutoLeaveEnabled");
+			CVarWrapper cvar = cvarManager->getCvar("AutoLeaveEnabled");
+			if (cvar.getBoolValue())
+			{
+				gameWrapper->Toast("AutoLeave", "AutoLeave is now enabled!");
+			} else
+			{
+				gameWrapper->Toast("AutoLeave", "AutoLeave is now disabled!");
+			}
 		}, "", PERMISSION_ALL);
 
 	registerCvars();
