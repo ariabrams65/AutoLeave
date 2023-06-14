@@ -8,7 +8,7 @@
 constexpr auto plugin_version = stringify(VERSION_MAJOR) "." stringify(VERSION_MINOR) "." stringify(VERSION_PATCH) "." stringify(VERSION_BUILD);
 
 constexpr int PRIVATE = 6;
-constexpr int TOURNAMENT = 22;
+constexpr int TOURNAMENT = 34;
 
 constexpr float LEAVE_MMR_DELAY = 0.26F;
 
