@@ -14,6 +14,12 @@ void AutoLeave::onLoad()
 	casualEnabled = std::make_shared<bool>(true);
 	queueEnabled = std::make_shared<bool>(true);
 	launchFreeplayEnabled = std::make_shared<bool>(true);
+	
+	cvarManager->registerNotifier("logPlaylist", [this](std::vector<std::string> args)
+		{
+
+			LOG(std::to_string(gameWrapper->GetCurrentGameState().GetPlaylist().GetPlaylistId()));
+		}, "", PERMISSION_ALL);
 
 	cvarManager->registerNotifier("toggleAutoLeave", [this](std::vector<std::string> args)
 		{
