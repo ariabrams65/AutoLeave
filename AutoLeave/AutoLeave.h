@@ -35,6 +35,7 @@ private:
 	bool isFreeplayMap(const std::string&);
 	void hookAll();
 	void unhookAll();
+	bool shouldQueue(int playlistId);
 
 	void renderCheckbox(const std::string&, const char*);
 
@@ -46,5 +47,7 @@ private:
 	std::shared_ptr<bool> casualEnabled;
 	std::shared_ptr<bool> queueEnabled;
 	std::shared_ptr<bool> launchFreeplayEnabled;
+	std::shared_ptr<bool> tournamentsEnabled;
+	std::shared_ptr<bool> privateEnabled;
 };
 

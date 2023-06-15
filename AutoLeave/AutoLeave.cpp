@@ -14,6 +14,8 @@ void AutoLeave::onLoad()
 	casualEnabled = std::make_shared<bool>(true);
 	queueEnabled = std::make_shared<bool>(true);
 	launchFreeplayEnabled = std::make_shared<bool>(true);
+	tournamentsEnabled = std::make_shared<bool>(true);
+	privateEnabled = std::make_shared<bool>(false);
 	
 	cvarManager->registerNotifier("logPlaylist", [this](std::vector<std::string> args)
 		{
@@ -63,6 +65,10 @@ void AutoLeave::registerCvars()
 		.bindTo(queueEnabled);
 	cvarManager->registerCvar("launchFreeplayEnabled", "1")
 		.bindTo(launchFreeplayEnabled);
+	cvarManager->registerCvar("tournamentsEnabled", "1")
+		.bindTo(tournamentsEnabled);
+	cvarManager->registerCvar("privateEnabled", "0")
+		.bindTo(privateEnabled);
 }
 
 void AutoLeave::cVarEnabledChanged()
@@ -123,20 +129,38 @@ void AutoLeave::launchTraining()
 	gameWrapper->ExecuteUnrealCommand(launchTrainingCommandBuilder.str());
 }
 
+bool AutoLeave::shouldQueue(int playlistId)
+{
+	if (*queueEnabled)
+	{
+		if (playlistId == TOURNAMENT && !*tournamentsEnabled)
+		{
+			return false;
+		}
+		if (playlistId == PRIVATE && !*privateEnabled)
+		{
+			return false;
+		}
+		return true;
+	}
+	return false;
+}
+
 void AutoLeave::onMatchEnded()
 {
 	ServerWrapper server = gameWrapper->GetCurrentGameState();
 	if (server.IsNull()) return;
 	GameSettingPlaylistWrapper playlist = server.GetPlaylist();
 	int playlistId = playlist.GetPlaylistId();
-	if (playlistId == PRIVATE || playlistId == TOURNAMENT) return;
+	if (playlistId == PRIVATE && !*privateEnabled) return;
+	if (playlistId == TOURNAMENT && !*tournamentsEnabled) return;
 	if (!playlist.GetbRanked() && !*casualEnabled) return;
 
-	if (*queueEnabled)
+	if (shouldQueue(playlistId))
 	{
 		queue();
 	}
-	if (*delayLeaveEnabled && gameWrapper->GetMMRWrapper().IsRanked(playlistId))
+	if (*delayLeaveEnabled && playlist.GetbRanked())
 	{
 		gameWrapper->SetTimeout([this](GameWrapper* gw)
 			{
@@ -155,12 +179,13 @@ void AutoLeave::onForfeitChanged()
 	if (server.GetbCanVoteToForfeit()) return;
 	GameSettingPlaylistWrapper playlist = server.GetPlaylist();
 	int playlistId = playlist.GetPlaylistId();
-	if (playlistId == PRIVATE || playlistId == TOURNAMENT) return;
+	if (playlistId == PRIVATE && !*privateEnabled) return;
+	if (playlistId == TOURNAMENT && !*tournamentsEnabled) return;
 	if (playlist.GetbRanked() && *delayLeaveEnabled) return;
 	if (!playlist.GetbRanked() && !*casualEnabled) return;
 	
 	exitGame();
-	if (*queueEnabled)
+	if (shouldQueue(playlistId))
 	{
 		gameWrapper->SetTimeout([this](GameWrapper* gw)
 			{
