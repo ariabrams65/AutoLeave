@@ -9,6 +9,10 @@ constexpr auto plugin_version = stringify(VERSION_MAJOR) "." stringify(VERSION_M
 
 constexpr int PRIVATE = 6;
 constexpr int TOURNAMENT = 34;
+constexpr int CASUAL_DUEL = 1;
+constexpr int CASUAL_DOUBLES = 2;
+constexpr int CASUAL_STANDARD = 3;
+constexpr int CASUAL_CHAOS = 4;
 
 constexpr float LEAVE_MMR_DELAY = 0.26F;
 
@@ -36,6 +40,7 @@ private:
 	void hookAll();
 	void unhookAll();
 	bool shouldQueue(int playlistId);
+	bool isCasual(int playlistId);
 
 	void renderCheckbox(const std::string&, const char*);
 

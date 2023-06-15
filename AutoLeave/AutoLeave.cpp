@@ -19,8 +19,11 @@ void AutoLeave::onLoad()
 	
 	cvarManager->registerNotifier("logPlaylist", [this](std::vector<std::string> args)
 		{
-		
-			LOG(std::to_string(gameWrapper->GetCurrentGameState().GetPlaylist().GetPlaylistId()));
+			ServerWrapper server = gameWrapper->GetCurrentGameState();
+			if (server.IsNull()) return;
+			GameSettingPlaylistWrapper playlist = server.GetPlaylist();
+			LOG(std::to_string(playlist.GetbStandard()));
+			//LOG(playlist.GetPlaylistId());
 		}, "", PERMISSION_ALL);
 
 	cvarManager->registerNotifier("toggleAutoLeave", [this](std::vector<std::string> args)
@@ -154,7 +157,7 @@ void AutoLeave::onMatchEnded()
 	int playlistId = playlist.GetPlaylistId();
 	if (playlistId == PRIVATE && !*privateEnabled) return;
 	if (playlistId == TOURNAMENT && !*tournamentsEnabled) return;
-	if (!playlist.GetbRanked() && !*casualEnabled) return;
+	if (isCasual(playlistId) && !*casualEnabled) return;
 
 	if (shouldQueue(playlistId))
 	{
@@ -172,6 +175,11 @@ void AutoLeave::onMatchEnded()
 	}
 }
 
+bool AutoLeave::isCasual(int playlistId)
+{
+	return (playlistId == CASUAL_DUEL || playlistId == CASUAL_DOUBLES || playlistId == CASUAL_STANDARD || playlistId == CASUAL_CHAOS);
+}
+
 void AutoLeave::onForfeitChanged()
 {
 	ServerWrapper server = gameWrapper->GetCurrentGameState();
@@ -181,8 +189,8 @@ void AutoLeave::onForfeitChanged()
 	int playlistId = playlist.GetPlaylistId();
 	if (playlistId == PRIVATE && !*privateEnabled) return;
 	if (playlistId == TOURNAMENT && !*tournamentsEnabled) return;
+	if (isCasual(playlistId) && !*casualEnabled) return;
 	if (playlist.GetbRanked() && *delayLeaveEnabled) return;
-	if (!playlist.GetbRanked() && !*casualEnabled) return;
 	
 	exitGame();
 	if (shouldQueue(playlistId))
