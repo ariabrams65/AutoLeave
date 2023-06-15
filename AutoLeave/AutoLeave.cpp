@@ -22,8 +22,9 @@ void AutoLeave::onLoad()
 			ServerWrapper server = gameWrapper->GetCurrentGameState();
 			if (server.IsNull()) return;
 			GameSettingPlaylistWrapper playlist = server.GetPlaylist();
-			LOG(std::to_string(playlist.GetbStandard()));
-			//LOG(playlist.GetPlaylistId());
+
+			//LOG(std::to_string(playlist.GetbStandard()));
+			LOG(std::to_string(playlist.GetPlaylistId()));
 		}, "", PERMISSION_ALL);
 
 	cvarManager->registerNotifier("toggleAutoLeave", [this](std::vector<std::string> args)
@@ -169,7 +170,7 @@ bool AutoLeave::isCasual(int playlistId)
 
 bool AutoLeave::isPrivate(int playlistId)
 {
-	return (playlistId == PRIVATE || playlistId == TOURNAMENT);
+	return (playlistId == PRIVATE || playlistId == CUSTOM_TOURNAMENT || playlistId == EXHIBITION || playlistId == LOCAL_MATCH || playlistId == SEASON);
 }
 
 void AutoLeave::onMatchEnded()

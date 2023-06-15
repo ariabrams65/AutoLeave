@@ -8,12 +8,15 @@
 constexpr auto plugin_version = stringify(VERSION_MAJOR) "." stringify(VERSION_MINOR) "." stringify(VERSION_PATCH) "." stringify(VERSION_BUILD);
 
 constexpr int PRIVATE = 6;
-constexpr int TOURNAMENT = 22;
+constexpr int CUSTOM_TOURNAMENT = 22;
 constexpr int AUTO_TOURNAMENT = 34;
 constexpr int CASUAL_DUEL = 1;
 constexpr int CASUAL_DOUBLES = 2;
 constexpr int CASUAL_STANDARD = 3;
 constexpr int CASUAL_CHAOS = 4;
+constexpr int EXHIBITION = 8;
+constexpr int LOCAL_MATCH = 24;
+constexpr int SEASON = 7;
 
 constexpr float LEAVE_MMR_DELAY = 0.26F;
 
