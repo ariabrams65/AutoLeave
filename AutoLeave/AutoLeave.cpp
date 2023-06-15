@@ -134,30 +134,52 @@ void AutoLeave::launchTraining()
 
 bool AutoLeave::shouldQueue(int playlistId)
 {
-	if (*queueEnabled)
+	if (!*queueEnabled)
 	{
-		if (playlistId == TOURNAMENT && !*tournamentsEnabled)
-		{
-			return false;
-		}
-		if (playlistId == PRIVATE && !*privateEnabled)
-		{
-			return false;
-		}
-		return true;
+		return false;
 	}
-	return false;
+	if (playlistId == AUTO_TOURNAMENT || isPrivate(playlistId))
+	{
+		return false;
+	}
+	return true;
+}
+
+bool AutoLeave::shouldLeave(int playlistId)
+{
+	if (isPrivate(playlistId) && !*privateEnabled)
+	{
+		return false;
+	}
+	if (playlistId == AUTO_TOURNAMENT && !*tournamentsEnabled)
+	{
+		return false;
+	}
+	if (isCasual(playlistId) && !*casualEnabled)
+	{
+		return false;
+	}
+	return true;
+}
+
+bool AutoLeave::isCasual(int playlistId)
+{
+	return (playlistId == CASUAL_DUEL || playlistId == CASUAL_DOUBLES || playlistId == CASUAL_STANDARD || playlistId == CASUAL_CHAOS);
+}
+
+bool AutoLeave::isPrivate(int playlistId)
+{
+	return (playlistId == PRIVATE || playlistId == TOURNAMENT);
 }
 
 void AutoLeave::onMatchEnded()
 {
 	ServerWrapper server = gameWrapper->GetCurrentGameState();
 	if (server.IsNull()) return;
+
 	GameSettingPlaylistWrapper playlist = server.GetPlaylist();
 	int playlistId = playlist.GetPlaylistId();
-	if (playlistId == PRIVATE && !*privateEnabled) return;
-	if (playlistId == TOURNAMENT && !*tournamentsEnabled) return;
-	if (isCasual(playlistId) && !*casualEnabled) return;
+	if (!shouldLeave(playlistId)) return;
 
 	if (shouldQueue(playlistId))
 	{
@@ -175,21 +197,15 @@ void AutoLeave::onMatchEnded()
 	}
 }
 
-bool AutoLeave::isCasual(int playlistId)
-{
-	return (playlistId == CASUAL_DUEL || playlistId == CASUAL_DOUBLES || playlistId == CASUAL_STANDARD || playlistId == CASUAL_CHAOS);
-}
-
 void AutoLeave::onForfeitChanged()
 {
 	ServerWrapper server = gameWrapper->GetCurrentGameState();
 	if (server.IsNull()) return;
 	if (server.GetbCanVoteToForfeit()) return;
+
 	GameSettingPlaylistWrapper playlist = server.GetPlaylist();
 	int playlistId = playlist.GetPlaylistId();
-	if (playlistId == PRIVATE && !*privateEnabled) return;
-	if (playlistId == TOURNAMENT && !*tournamentsEnabled) return;
-	if (isCasual(playlistId) && !*casualEnabled) return;
+	if (!shouldLeave(playlistId)) return;
 	if (playlist.GetbRanked() && *delayLeaveEnabled) return;
 	
 	exitGame();

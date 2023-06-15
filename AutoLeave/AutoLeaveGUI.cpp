@@ -27,6 +27,6 @@ void AutoLeave::RenderSettings() {
 	renderCheckbox("queueEnabled", "Enable auto queue");
 	renderCheckbox("launchFreeplayEnabled", "Launch freeplay on game end");
 	renderCheckbox("tournamentsEnabled", "Enable auto leave for tournaments");
-	renderCheckbox("privateEnabled", "Enable auto leave for private matches");
+	renderCheckbox("privateEnabled", "Enable auto leave for private matches and custom tournaments");
 }
 
