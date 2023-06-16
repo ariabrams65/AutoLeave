@@ -18,7 +18,7 @@ constexpr int EXHIBITION = 8;
 constexpr int LOCAL_MATCH = 24;
 constexpr int SEASON = 7;
 
-constexpr float LEAVE_MMR_DELAY = 0.26F;
+constexpr float LEAVE_MMR_DELAY = 0.4F;
 
 class AutoLeave: public BakkesMod::Plugin::BakkesModPlugin, public BakkesMod::Plugin::PluginSettingsWindow
 {

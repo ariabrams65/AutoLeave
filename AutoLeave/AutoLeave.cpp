@@ -22,8 +22,9 @@ void AutoLeave::onLoad()
 			ServerWrapper server = gameWrapper->GetCurrentGameState();
 			if (server.IsNull()) return;
 			GameSettingPlaylistWrapper playlist = server.GetPlaylist();
+			
 
-			//LOG(std::to_string(playlist.GetbStandard()));
+			LOG(std::to_string(playlist.GetbRanked()));
 			LOG(std::to_string(playlist.GetPlaylistId()));
 		}, "", PERMISSION_ALL);
 
