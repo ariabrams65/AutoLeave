@@ -16,17 +16,6 @@ void AutoLeave::onLoad()
 	launchFreeplayEnabled = std::make_shared<bool>(true);
 	tournamentsEnabled = std::make_shared<bool>(true);
 	privateEnabled = std::make_shared<bool>(false);
-	
-	cvarManager->registerNotifier("logPlaylist", [this](std::vector<std::string> args)
-		{
-			ServerWrapper server = gameWrapper->GetCurrentGameState();
-			if (server.IsNull()) return;
-			GameSettingPlaylistWrapper playlist = server.GetPlaylist();
-			
-
-			LOG(std::to_string(playlist.GetbRanked()));
-			LOG(std::to_string(playlist.GetPlaylistId()));
-		}, "", PERMISSION_ALL);
 
 	cvarManager->registerNotifier("toggleAutoLeave", [this](std::vector<std::string> args)
 		{
