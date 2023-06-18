@@ -19,6 +19,7 @@ void AutoLeave::onLoad()
 	
 	cvarManager->registerNotifier("AutoLeaveTest", [this](std::vector<std::string> args)
 		{
+			LOG("In Game: " + std::to_string(gameWrapper->IsInGame()));
 		}, "", PERMISSION_ALL);
 	
 	cvarManager->registerNotifier("toggleAutoLeave", [this](std::vector<std::string> args)
@@ -173,7 +174,6 @@ bool AutoLeave::isPrivate(int playlistId)
 
 bool AutoLeave::isInParty()
 {
-	if (!inGame()) return false;
 	PlayerControllerWrapper playerController = gameWrapper->GetPlayerController();
 	if (!playerController) return false;
 	PriWrapper primaryPRI = playerController.GetPRI();
@@ -185,7 +185,6 @@ bool AutoLeave::isInParty()
 
 bool AutoLeave::isPartyLeader()
 {
-	if (!inGame()) return false;
 	PlayerControllerWrapper playerController = gameWrapper->GetPlayerController();
 	if (!playerController) return false;
 	PriWrapper primaryPRI = playerController.GetPRI();
@@ -194,20 +193,6 @@ bool AutoLeave::isPartyLeader()
 	UniqueIDWrapper partyLeaderId = primaryPRI.GetPartyLeaderID();
 	UniqueIDWrapper primaryId = primaryPRI.GetUniqueIdWrapper();
 	return partyLeaderId == primaryId;
-}
-
-bool AutoLeave::inGame()
-{
-	ServerWrapper game = gameWrapper->GetOnlineGame();
-	if (!game)
-	{
-		return false;
-	}
-	if (game.GetbMatchEnded())
-	{
-		return false;
-	}
-	return true;
 }
 
 void AutoLeave::onMatchEnded()
@@ -237,6 +222,7 @@ void AutoLeave::onMatchEnded()
 
 void AutoLeave::onForfeitChanged()
 {
+	LOG("here");
 	ServerWrapper server = gameWrapper->GetCurrentGameState();
 	if (server.IsNull()) return;
 	if (server.GetbCanVoteToForfeit()) return;
