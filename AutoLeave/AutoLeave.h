@@ -47,6 +47,9 @@ private:
 	bool isCasual(int playlistId);
 	bool shouldLeave(int playlistId);
 	bool isPrivate(int playlistId);
+	bool isInParty();
+	bool isPartyLeader();
+	bool inGame();
 
 	void renderCheckbox(const std::string&, const char*);
 

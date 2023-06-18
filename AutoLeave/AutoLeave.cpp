@@ -16,7 +16,11 @@ void AutoLeave::onLoad()
 	launchFreeplayEnabled = std::make_shared<bool>(true);
 	tournamentsEnabled = std::make_shared<bool>(true);
 	privateEnabled = std::make_shared<bool>(false);
-
+	
+	cvarManager->registerNotifier("AutoLeaveTest", [this](std::vector<std::string> args)
+		{
+		}, "", PERMISSION_ALL);
+	
 	cvarManager->registerNotifier("toggleAutoLeave", [this](std::vector<std::string> args)
 		{
 			toggleCvar("AutoLeaveEnabled");
@@ -133,6 +137,10 @@ bool AutoLeave::shouldQueue(int playlistId)
 	{
 		return false;
 	}
+	if (isInParty() && !isPartyLeader())
+	{
+		return false;
+	}
 	return true;
 }
 
@@ -161,6 +169,45 @@ bool AutoLeave::isCasual(int playlistId)
 bool AutoLeave::isPrivate(int playlistId)
 {
 	return (playlistId == PRIVATE || playlistId == CUSTOM_TOURNAMENT || playlistId == EXHIBITION || playlistId == LOCAL_MATCH || playlistId == SEASON);
+}
+
+bool AutoLeave::isInParty()
+{
+	if (!inGame()) return false;
+	PlayerControllerWrapper playerController = gameWrapper->GetPlayerController();
+	if (!playerController) return false;
+	PriWrapper primaryPRI = playerController.GetPRI();
+	if (!primaryPRI) return false;
+
+	UniqueIDWrapper partyLeaderId = primaryPRI.GetPartyLeaderID();
+	return partyLeaderId.str() != "0";
+}
+
+bool AutoLeave::isPartyLeader()
+{
+	if (!inGame()) return false;
+	PlayerControllerWrapper playerController = gameWrapper->GetPlayerController();
+	if (!playerController) return false;
+	PriWrapper primaryPRI = playerController.GetPRI();
+	if (!primaryPRI) return false;
+
+	UniqueIDWrapper partyLeaderId = primaryPRI.GetPartyLeaderID();
+	UniqueIDWrapper primaryId = primaryPRI.GetUniqueIdWrapper();
+	return partyLeaderId == primaryId;
+}
+
+bool AutoLeave::inGame()
+{
+	ServerWrapper game = gameWrapper->GetOnlineGame();
+	if (!game)
+	{
+		return false;
+	}
+	if (game.GetbMatchEnded())
+	{
+		return false;
+	}
+	return true;
 }
 
 void AutoLeave::onMatchEnded()
@@ -198,9 +245,11 @@ void AutoLeave::onForfeitChanged()
 	int playlistId = playlist.GetPlaylistId();
 	if (!shouldLeave(playlistId)) return;
 	if (playlist.GetbRanked() && *delayLeaveEnabled) return;
+
+	bool shouldQ = shouldQueue(playlistId);
 	
 	exitGame();
-	if (shouldQueue(playlistId))
+	if (shouldQ)
 	{
 		gameWrapper->SetTimeout([this](GameWrapper* gw)
 			{
