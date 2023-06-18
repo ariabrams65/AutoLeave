@@ -17,11 +17,6 @@ void AutoLeave::onLoad()
 	tournamentsEnabled = std::make_shared<bool>(true);
 	privateEnabled = std::make_shared<bool>(false);
 	
-	cvarManager->registerNotifier("AutoLeaveTest", [this](std::vector<std::string> args)
-		{
-			LOG("In Game: " + std::to_string(gameWrapper->IsInGame()));
-		}, "", PERMISSION_ALL);
-	
 	cvarManager->registerNotifier("toggleAutoLeave", [this](std::vector<std::string> args)
 		{
 			toggleCvar("AutoLeaveEnabled");
@@ -222,7 +217,6 @@ void AutoLeave::onMatchEnded()
 
 void AutoLeave::onForfeitChanged()
 {
-	LOG("here");
 	ServerWrapper server = gameWrapper->GetCurrentGameState();
 	if (server.IsNull()) return;
 	if (server.GetbCanVoteToForfeit()) return;
@@ -233,6 +227,7 @@ void AutoLeave::onForfeitChanged()
 	if (playlist.GetbRanked() && *delayLeaveEnabled) return;
 
 	bool shouldQ = shouldQueue(playlistId);
+	if (isPartyLeader() && shouldQ) return;
 	
 	exitGame();
 	if (shouldQ)
