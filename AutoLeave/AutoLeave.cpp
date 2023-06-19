@@ -21,6 +21,7 @@ void AutoLeave::onLoad()
 		{
 			toggleCvar("AutoLeaveEnabled");
 			CVarWrapper cvar = cvarManager->getCvar("AutoLeaveEnabled");
+			if (!cvar) return;
 			if (cvar.getBoolValue())
 			{
 				gameWrapper->Toast("AutoLeave", "AutoLeave is now enabled!");
