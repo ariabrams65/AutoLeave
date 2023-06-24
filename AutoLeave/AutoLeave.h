@@ -32,9 +32,9 @@ public:
 	void SetImGuiContext(uintptr_t ctx) override;
 
 private:
+	void initAllVars();
 	void registerCvars();
 	void registerNotifiers();
-	void cVarEnabledChanged();
 	void toggleCvar(const std::string&);
 	bool canLeave();
 	void onForfeitChanged();
@@ -45,7 +45,6 @@ private:
 	void launchTraining();
 	bool isFreeplayMap(const std::string&);
 	void hookAll();
-	void unhookMatchEnd();
 	bool shouldQueue(int playlistId);
 	bool isCasual(int playlistId);
 	bool shouldLeave(int playlistId);
@@ -56,9 +55,9 @@ private:
 	void renderCheckbox(const std::string&, const char*);
 
 private:
-	bool matchEndHooked;
 	bool canLeaveMatch;
 
+	std::shared_ptr<bool> enabled;
 	std::shared_ptr<std::string> trainingMap;
 	std::shared_ptr<bool> delayLeaveEnabled;
 	std::shared_ptr<bool> casualEnabled;
