@@ -19,6 +19,7 @@ constexpr int LOCAL_MATCH = 24;
 constexpr int SEASON = 7;
 
 constexpr float LEAVE_MMR_DELAY = 0.4F;
+constexpr float QUEUE_DELAY = 0.1F;
 
 class AutoLeave: public BakkesMod::Plugin::BakkesModPlugin, public BakkesMod::Plugin::PluginSettingsWindow
 {
@@ -32,8 +33,10 @@ public:
 
 private:
 	void registerCvars();
+	void registerNotifiers();
 	void cVarEnabledChanged();
 	void toggleCvar(const std::string&);
+	bool canLeave();
 	void onForfeitChanged();
 	void onMatchEnded();
 	void onLoadedFreeplay();
@@ -42,7 +45,7 @@ private:
 	void launchTraining();
 	bool isFreeplayMap(const std::string&);
 	void hookAll();
-	void unhookAll();
+	void unhookMatchEnd();
 	bool shouldQueue(int playlistId);
 	bool isCasual(int playlistId);
 	bool shouldLeave(int playlistId);
@@ -53,7 +56,8 @@ private:
 	void renderCheckbox(const std::string&, const char*);
 
 private:
-	bool hooked;
+	bool matchEndHooked;
+	bool canLeaveMatch;
 
 	std::shared_ptr<std::string> trainingMap;
 	std::shared_ptr<bool> delayLeaveEnabled;
@@ -62,5 +66,7 @@ private:
 	std::shared_ptr<bool> launchFreeplayEnabled;
 	std::shared_ptr<bool> tournamentsEnabled;
 	std::shared_ptr<bool> privateEnabled;
+	std::shared_ptr<bool> manualQueueEnabled;
+	std::shared_ptr<bool> manualLaunchFreeplayEnabled;
 };
 

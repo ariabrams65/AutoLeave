@@ -30,5 +30,10 @@ void AutoLeave::RenderSettings() {
 	renderCheckbox("casualEnabled", "Enable for casual");
 	renderCheckbox("tournamentsEnabled", "Enable for tournaments");
 	renderCheckbox("privateEnabled", "Enable for private matches and custom tournaments");
+	ImGui::Separator();
+	ImGui::Text("Settings for leaving/queueing using keybind");
+	ImGui::Spacing();
+	renderCheckbox("manualQueueEnabled", "Enable queueing when leaving using keybind");
+	renderCheckbox("manualLaunchFreeplayEnabled", "launch freeplay when leaving using keybind");
 }
 

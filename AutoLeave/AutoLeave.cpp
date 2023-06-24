@@ -16,7 +16,17 @@ void AutoLeave::onLoad()
 	launchFreeplayEnabled = std::make_shared<bool>(true);
 	tournamentsEnabled = std::make_shared<bool>(true);
 	privateEnabled = std::make_shared<bool>(false);
+	manualQueueEnabled = std::make_shared<bool>(true);
+	manualLaunchFreeplayEnabled = std::make_shared<bool>(true);
 	
+	registerNotifiers();
+	registerCvars();
+	hookAll();
+	canLeaveMatch = false;
+}
+
+void AutoLeave::registerNotifiers()
+{
 	cvarManager->registerNotifier("toggleAutoLeave", [this](std::vector<std::string> args)
 		{
 			toggleCvar("AutoLeaveEnabled");
@@ -31,8 +41,39 @@ void AutoLeave::onLoad()
 			}
 		}, "", PERMISSION_ALL);
 
-	registerCvars();
-	hookAll();
+	cvarManager->registerNotifier("leaveMatch", [this](std::vector<std::string> args)
+		{
+			if (!canLeave())
+			{
+				gameWrapper->Toast("AutoLeave", "Can't leave because game hasn't ended");
+				return;
+			}
+			if (*manualLaunchFreeplayEnabled)
+			{
+				launchTraining();
+			} else
+			{
+				cvarManager->executeCommand("unreal_command disconnect");
+			}
+			if (*manualQueueEnabled)
+			{
+				gameWrapper->SetTimeout([this](GameWrapper* gw)
+					{
+						queue();
+					}, QUEUE_DELAY);
+			}
+		}, "", PERMISSION_ALL);
+
+	cvarManager->registerNotifier("AutoLeaveTest", [this](std::vector<std::string> args)
+		{
+			auto game = gameWrapper->GetOnlineGame();
+			if (!game)
+			{
+				LOG("Not in game");
+				return;
+			}
+			LOG(std::to_string(game.GetbMatchEnded()));
+		}, "", PERMISSION_ALL);
 }
 
 void AutoLeave::toggleCvar(const std::string& cvarStr)
@@ -64,6 +105,10 @@ void AutoLeave::registerCvars()
 		.bindTo(tournamentsEnabled);
 	cvarManager->registerCvar("privateEnabled", "0")
 		.bindTo(privateEnabled);
+	cvarManager->registerCvar("manualQueueEnabled", "1")
+		.bindTo(manualQueueEnabled);
+	cvarManager->registerCvar("manualLaunchFreeplayEnabled", "1")
+		.bindTo(manualLaunchFreeplayEnabled);
 }
 
 void AutoLeave::cVarEnabledChanged()
@@ -71,13 +116,13 @@ void AutoLeave::cVarEnabledChanged()
 	CVarWrapper cvar = cvarManager->getCvar("AutoLeaveEnabled");
 	if (!cvar) return;
 	bool enabled = cvar.getBoolValue();
-	if (enabled && !hooked)
+	if (enabled && !matchEndHooked)
 	{
 		hookAll();
 	}
-	else if (!enabled && hooked)
+	else if (!enabled && matchEndHooked)
 	{
-		unhookAll();
+		unhookMatchEnd();
 	}
 }
 
@@ -90,15 +135,30 @@ void AutoLeave::hookAll()
 		});
 	gameWrapper->HookEvent("Function TAGame.GameEvent_TA.OnCanVoteForfeitChanged",
 		[this](std::string eventname)
-	{
-		onForfeitChanged();
-	});
+		{
+			onForfeitChanged();
+		});
 	gameWrapper->HookEvent("Function TAGame.Car_Freeplay_TA.HandleAllAssetsLoaded",
 		[this](std::string eventname)
+		{
+			onLoadedFreeplay();
+		});
+	gameWrapper->HookEvent("Function TAGame.GameEvent_Soccar_TA.Destroyed",
+		[this](std::string eventname)
+		{
+			canLeaveMatch = false;
+		});
+	matchEndHooked = true;
+}
+
+bool AutoLeave::canLeave()
+{
+	ServerWrapper game = gameWrapper->GetOnlineGame();
+	if (!game)
 	{
-		onLoadedFreeplay();
-	});
-	hooked = true;
+		return true;
+	}
+	return canLeaveMatch;
 }
 
 void AutoLeave::queue()
@@ -221,6 +281,7 @@ void AutoLeave::onForfeitChanged()
 	ServerWrapper server = gameWrapper->GetCurrentGameState();
 	if (server.IsNull()) return;
 	if (server.GetbCanVoteToForfeit()) return;
+	canLeaveMatch = true;
 
 	GameSettingPlaylistWrapper playlist = server.GetPlaylist();
 	int playlistId = playlist.GetPlaylistId();
@@ -236,7 +297,7 @@ void AutoLeave::onForfeitChanged()
 		gameWrapper->SetTimeout([this](GameWrapper* gw)
 			{
 				queue();
-			}, 0.1F);
+			}, QUEUE_DELAY);
 	}
 }
 
@@ -255,12 +316,11 @@ void AutoLeave::onLoadedFreeplay()
 	}
 }
 
-void AutoLeave::unhookAll()
+void AutoLeave::unhookMatchEnd()
 {
 	gameWrapper->UnhookEvent("Function TAGame.GameEvent_TA.OnCanVoteForfeitChanged");
-	gameWrapper->UnhookEvent("Function TAGame.Car_Freeplay_TA.HandleAllAssetsLoaded");
 	gameWrapper->UnhookEvent("Function TAGame.GameEvent_Soccar_TA.EventMatchEnded");
-	hooked = false;
+	matchEndHooked = false;
 }
 
 void AutoLeave::onUnload()
